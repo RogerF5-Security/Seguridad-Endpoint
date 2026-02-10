@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura de Seguridad Endpoint: AV, EPP, EDR y XDR | Roger Arana</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+
+            --tlp-clear: #2ecc71; 
+            --primary-dark: #2c3e50;
+            --accent-red: #e74c3c;
+            --accent-blue: #3498db;
+            --tech-av: #27ae60;
+            --tech-epp: #f39c12;
+            --tech-edr: #c0392b;
+            --tech-xdr: #8e44ad;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding-top: 80px;
+        }
+
+        /* Banner TLP Fijo */
+        .tlp-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--primary-dark);
+            color: var(--tlp-clear);
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            z-index: 1030;
+            border-bottom: 3px solid var(--tlp-clear);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
+        }
+
+        /* Navbar de Navegación */
+        .navbar-custom {
+            top: 40px; /* Debajo del banner TLP */
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .report-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.05);
+            border-radius: 12px;
+        }
+
+        h1, h2, h3 { color: var(--primary-dark); }
+        
+        h1 {
+            font-weight: 700;
+            border-bottom: 3px solid var(--primary-dark);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            margin-top: 60px;
+            margin-bottom: 30px;
+            border-left: 6px solid var(--accent-blue);
+            padding-left: 20px;
+            background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
+            padding-top: 10px;
+            padding-bottom: 10px;
+            border-radius: 0 5px 5px 0;
+        }
+
+        /* Tarjetas de Tecnología */
+        .tech-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            transition: transform 0.2s;
+            background: white;
+        }
+        .tech-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .tech-header {
+            padding: 15px 20px;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .av-header { background-color: var(--tech-av); }
+        .epp-header { background-color: var(--tech-epp); }
+        .edr-header { background-color: var(--tech-edr); }
+        .xdr-header { background-color: var(--tech-xdr); }
+
+        .examples-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-dark);
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        /* Diagrama Mermaid */
+        .mermaid-container {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+            overflow-x: auto;
+        }
+
+        .meta-info {
+            font-size: 0.95em;
+            color: #6c757d;
+            margin-bottom: 30px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .badge-custom {
+            font-size: 0.9em;
+            padding: 8px 15px;
+            margin-right: 5px;
+            border-radius: 20px;
+        }
+
+        @media print {
+            body { padding-top: 0; background-color: white; }
+            .tlp-banner { position: static; border: 1px solid black; background: white; color: black; }
+            .navbar-custom { display: none; }
+            .report-container { box-shadow: none; margin: 0; padding: 0; width: 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Banner TLP -->
+    <div class="tlp-banner">
+        <i class="fas fa-lock-open"></i> Clasificación: TLP:CLEAR - Distribución Pública
+    </div>
+
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="#"><i class="fas fa-shield-alt"></i> </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#av">Antivirus (AV)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#epp">EPP</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#edr">EDR</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#xdr">XDR</a></li>
+                    <li class="nav-item"><a class="nav-link text-primary fw-bold" href="#diagrama">Diagrama</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container report-container">
+        
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <h1>Guía Técnica: Evolución de la Seguridad Endpoint</h1>
+                
+                <div class="row meta-info text-center">
+                    <div class="col-md-4 border-end">
+                        <strong><i class="fas fa-user-check"></i> Autor:</strong><br>Roger Arana 
+                    </div>
+                    <div class="col-md-4 border-end">
+                        <strong><i class="far fa-calendar-alt"></i> Publicado:</strong><br>10 de Febrero de 2026
+                    </div>
+                    <div class="col-md-4">
+                        <strong><i class="fas fa-layer-group"></i> Categoría:</strong><br>Arquitectura Defensiva
+                    </div>
+                </div>
+
+                <div class="mb-4 text-center">
+                    <span class="badge bg-dark badge-custom">EDR / XDR</span>
+                    <span class="badge bg-primary badge-custom">Blue Team</span>
+                    <span class="badge bg-info text-dark badge-custom">Technical Reference</span>
+                </div>
+
+                <div class="alert alert-info border-info shadow-sm d-flex align-items-center" role="alert">
+                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                    <div>
+                        <strong>RESUMEN TÉCNICO:</strong>
+                        Este documento define las capacidades, limitaciones y casos de uso de las tecnologías de protección de endpoint, diferenciando claramente entre prevención basada en firmas (AV), prevención avanzada (EPP), detección post-ejecución (EDR) y correlación extendida (XDR).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Antivirus (AV) -->
+        <section id="av">
+            <div class="tech-card shadow-sm">
+                <div class="tech-header av-header">
+                    <span><i class="fas fa-file-signature me-2"></i> 1. Antivirus Tradicional (AV)</span>
+                    <span class="badge bg-white text-success">Legado</span>
+                </div>
+                <div class="card-body p-4">
+                    <h5>Definición Técnica</h5>
+                    <p>Software de seguridad diseñado para prevenir, detectar y eliminar malware basándose principalmente en <strong>coincidencias de firmas estáticas</strong>. Funciona comparando el contenido de los archivos escaneados contra una base de datos local o en la nube de amenazas conocidas.</p>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-cogs text-secondary"></i> Mecanismo de Funcionamiento</h6>
+                            <ul>
+                                <li><strong>Firmas Hash:</strong> Comparación de MD5/SHA256 del archivo completo.</li>
+                                <li><strong>Firmas de Cadena (Bytes):</strong> Búsqueda de secuencias hexadecimales específicas dentro del binario.</li>
+                                <li><strong>Heurística Básica:</strong> Detección de patrones simples (ej. un ejecutable comprimido con UPX).</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-exclamation-triangle text-danger"></i> Limitaciones Críticas</h6>
+                            <ul>
+                                <li>Ineficaz contra ataques <em>Fileless</em> (solo en memoria).</li>
+                                <li>Ceguera ante malware polimórfico (código que cambia en cada ejecución).</li>
+                                <li>Cero visibilidad sobre lo que hace el malware una vez ejecutado.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="examples-box">
+                        <strong><i class="fas fa-tags"></i> Ejemplos Comerciales / Históricos:</strong>
+                        <br> Symantec Endpoint Protection (Legacy), McAfee VirusScan Enterprise, ClamAV (Open Source), Windows Defender (Versiones pre-Windows 10).
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. EPP -->
+        <section id="epp">
+            <div class="tech-card shadow-sm">
+                <div class="tech-header epp-header">
+                    <span><i class="fas fa-shield-alt me-2"></i> 2. Endpoint Protection Platform (EPP)</span>
+                    <span class="badge bg-white text-dark">Estándar Mínimo</span>
+                </div>
+                <div class="card-body p-4">
+                    <h5>Definición Técnica</h5>
+                    <p>Solución integrada que evoluciona el AV tradicional incorporando múltiples tecnologías de <strong>prevención pre-ejecución</strong>. Su objetivo principal es bloquear la amenaza antes de que se escriba en disco o se inicie el proceso, reduciendo la superficie de ataque del endpoint.</p>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-cogs text-secondary"></i> Capacidades Adicionales</h6>
+                            <ul>
+                                <li><strong>Machine Learning (ML) Estático:</strong> Análisis de características del archivo (sin firmas) para predecir maliciosidad.</li>
+                                <li><strong>Control de Dispositivos:</strong> Gestión de puertos USB y periféricos.</li>
+                                <li><strong>Host Firewall / IPS:</strong> Filtrado de tráfico de red a nivel de host.</li>
+                                <li><strong>Control de Aplicaciones:</strong> Listas blancas/negras de software permitido.</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-exclamation-triangle text-danger"></i> Limitaciones Críticas</h6>
+                            <ul>
+                                <li>Falsos positivos generados por modelos de ML agresivos.</li>
+                                <li>Limitada capacidad para detener ataques que usan herramientas nativas del sistema (Living off the Land Binaries - LOLBins) como PowerShell o WMI.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="examples-box">
+                        <strong><i class="fas fa-tags"></i> Ejemplos Comerciales:</strong>
+                        <br> Trend Micro Apex One, Sophos Intercept X (Versiones Base), Kaspersky Endpoint Security, Trellix (McAfee) EPP, ESET Endpoint Security.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. EDR -->
+        <section id="edr">
+            <div class="tech-card shadow-sm">
+                <div class="tech-header edr-header">
+                    <span><i class="fas fa-video me-2"></i> 3. Endpoint Detection & Response (EDR)</span>
+                    <span class="badge bg-white text-danger">Avanzado</span>
+                </div>
+                <div class="card-body p-4">
+                    <h5>Definición Técnica</h5>
+                    <p>Tecnología centrada en la <strong>visibilidad post-ejecución</strong> y la respuesta a incidentes. El EDR asume que la prevención fallará y se dedica a monitorear, grabar y analizar el comportamiento del endpoint en tiempo real para detectar actividades anómalas que un EPP no bloquearía.</p>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-cogs text-secondary"></i> Mecanismo de Funcionamiento</h6>
+                            <ul>
+                                <li><strong>Telemetría Continua:</strong> Recolección de eventos de procesos, registro, red y archivos (vía Kernel Callbacks o ETW).</li>
+                                <li><strong>Threat Hunting:</strong> Capacidad para buscar Indicadores de Compromiso (IoCs) en todo el parque histórico.</li>
+                                <li><strong>Respuesta Remota:</strong> Aislamiento de red del host, eliminación de procesos y apertura de Shell remota para forense.</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success"></i> Diferenciador Clave</h6>
+                            <p>Detecta técnicas de ataque, no solo archivos. Ejemplo: Un EDR detectará un script de PowerShell inyectando código en <code>lsass.exe</code> (Credential Dumping), mientras que un AV/EPP podría verlo como un proceso legítimo.</p>
+                        </div>
+                    </div>
+
+                    <div class="examples-box">
+                        <strong><i class="fas fa-tags"></i> Ejemplos Comerciales Líderes:</strong>
+                        <br> CrowdStrike Falcon Insight, SentinelOne Singularity, Microsoft Defender for Endpoint (Plan 2), Carbon Black EDR, Cybereason.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. XDR -->
+        <section id="xdr">
+            <div class="tech-card shadow-sm">
+                <div class="tech-header xdr-header">
+                    <span><i class="fas fa-project-diagram me-2"></i> 4. Extended Detection & Response (XDR)</span>
+                    <span class="badge bg-white text-primary">Holístico</span>
+                </div>
+                <div class="card-body p-4">
+                    <h5>Definición Técnica</h5>
+                    <p>Evolución del EDR que rompe los silos de información. El XDR es una plataforma que unifica, ingesta y correlaciona datos de múltiples vectores de seguridad (no solo del endpoint) para proporcionar una detección integrada y una respuesta orquestada.</p>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-network-wired text-secondary"></i> Vectores Integrados</h6>
+                            <ul>
+                                <li><strong>Endpoint:</strong> Datos de EDR.</li>
+                                <li><strong>Red (NDR):</strong> Logs de Firewall y análisis de tráfico.</li>
+                                <li><strong>Identidad:</strong> Logs de Active Directory / Azure AD.</li>
+                                <li><strong>Cloud:</strong> Cargas de trabajo en AWS/Azure/GCP.</li>
+                                <li><strong>Email:</strong> Datos de gateways de correo seguro.</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-brain text-primary"></i> Valor Estratégico</h6>
+                            <p>Reduce la fatiga de alertas mediante IA. En lugar de generar 50 alertas separadas (1 del firewall, 1 del antivirus, 48 del EDR), el XDR correlaciona los eventos y presenta <strong>un solo incidente</strong> con la cadena de ataque completa.</p>
+                        </div>
+                    </div>
+
+                    <div class="examples-box">
+                        <strong><i class="fas fa-tags"></i> Ejemplos Comerciales:</strong>
+                        <br> Palo Alto Networks Cortex XDR, Trend Micro Vision One, Microsoft 365 Defender (XDR nativo), Fortinet FortiXDR, Trellix XDR.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Diagrama Mermaid -->
+        <section id="diagrama" class="mt-5 mb-5">
+            <h2>5. <i class="fas fa-sitemap"></i> Arquitectura de Cobertura</h2>
+            <div class="mermaid-container">
+                <div class="mermaid">
+graph LR
+    subgraph "Nivel 1: Endpoint (Local)"
+        AV[AV: Firmas] -->|Evoluciona a| EPP[EPP: Prevención ML]
+        EPP -->|Se complementa con| EDR[EDR: Comportamiento]
+    end
+
+    subgraph "Nivel 2: Ecosistema (Cross-Layer)"
+        EDR -->|Envía Telemetría| XDR[XDR: Correlación]
+        Network[Firewall / NDR] --> XDR
+        Cloud[Cloud Workloads] --> XDR
+        Identity[Active Directory] --> XDR
+    end
+
+    subgraph "Nivel 3: Operación"
+        XDR -->|Incidentes| SOC[Analista de Seguridad]
+    end
+
+    style AV fill:#e8f8f5,stroke:#27ae60,stroke-width:2px
+    style EPP fill:#fef9e7,stroke:#f39c12,stroke-width:2px
+    style EDR fill:#fbeee6,stroke:#c0392b,stroke-width:2px
+    style XDR fill:#f4ecf7,stroke:#8e44ad,stroke-width:4px
+    style SOC fill:#2c3e50,stroke:#34495e,color:white
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center text-muted mt-5 pt-4 border-top">
+            <p class="mb-1"><strong>Guía Técnica de Arquitectura de Seguridad</strong></p>
+            <p class="small">Desarrollado por Roger Arana &copy; 2026</p>
+            <div class="mb-3">
+                <a href="https://github.com/RogerF5-Security/" class="text-muted text-decoration-none mx-2" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                <a href="https://www.linkedin.com/in/rogerf5/" class="text-muted text-decoration-none mx-2" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Mermaid JS Integration -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#ecf0f1',
+                edgeLabelBackground: '#ffffff',
+                tertiaryColor: '#fff',
+                fontFamily: 'Roboto'
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>
